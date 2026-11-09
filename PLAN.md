@@ -52,7 +52,7 @@ starts with VW and Audi vehicles and uses an extensible framework for other VAG 
 
 ## 2. Stages and tasks (WBS + IPO)
 
-Status (2026-11-09): Plan complete. Task 2.1 complete. The next task is [2.2](#t-2-2).
+Status (2026-11-09): Plan complete. Tasks 2.1–2.2 complete. The next task is [2.3](#t-2-3).
 
 ```mermaid
 flowchart LR
@@ -363,7 +363,7 @@ flowchart LR
   </details>
 
 <a id="t-2-2"></a>
-- [ ] **2.2 Implement OBDLink adapter (Bluetooth/HID)**
+- [x] **2.2 Implement OBDLink adapter (Bluetooth/HID)**
 
   <details>
   <summary>2.2 IPO card</summary>
