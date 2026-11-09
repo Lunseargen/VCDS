@@ -90,21 +90,33 @@ describe('WidgetFrame', () => {
 });
 
 describe('FaultPanel', () => {
-  const modules = [{ address: '01', name: 'Engine', partNumber: 'P1', component: 'C1', coding: '', faults: [] }];
+  const modules = [
+    { address: '01', name: 'Engine', partNumber: 'P1', component: 'C1', coding: '', faults: [] },
+    { address: '03', name: 'ABS', partNumber: 'P3', component: 'C3', coding: '', faults: [] },
+  ];
   const faults = [
     { address: '01', code: 5585, name: 'DPF', obdCode: 'P242F 00', detail: 'Clogged', status: ['Confirmed'], freezeFrame: [{ label: 'Mileage', value: '1 km' }] },
     { address: '01', code: 9690, name: 'NOx', obdCode: '', detail: 'High', status: [], freezeFrame: [] },
   ];
-  it('shows no-log text and no clear button with nothing', () => {
+  it('shows no-log text and no scan button with nothing', () => {
     render(<FaultPanel modules={[]} faults={[]} sourceName={null} onClear={() => {}} />);
     expect(screen.getByText('No scan log found.')).toBeTruthy();
-    expect(screen.queryByText('Clear DTCs (simulated)')).toBeNull();
+    expect(screen.queryByText('Scan all modules')).toBeNull();
   });
-  it('lists the faults, opens and closes a freeze frame, and clears', () => {
+  it('lists the modules before a scan and hides the faults', () => {
+    render(<FaultPanel modules={modules} faults={faults} sourceName="log.txt" onClear={() => {}} />);
+    expect(screen.getByText('Engine')).toBeTruthy();
+    expect(screen.getByText('ABS')).toBeTruthy();
+    expect(screen.queryByText('P242F 00')).toBeNull();
+    expect(screen.getByText(/Press "Scan all modules"/)).toBeTruthy();
+  });
+  it('scans all modules, groups the faults, opens and closes a freeze frame, and clears', () => {
     const onClear = vi.fn();
     render(<FaultPanel modules={modules} faults={faults} sourceName="log.txt" onClear={onClear} />);
-    expect(screen.getByText(/Source: log.txt/)).toBeTruthy();
-    expect(screen.getByText('9690')).toBeTruthy();
+    fireEvent.click(screen.getByText('Scan all modules'));
+    expect(screen.getByText('Scanned 2 modules. Found 2 faults in 1 modules.')).toBeTruthy();
+    expect(screen.getByText('No faults')).toBeTruthy(); // the ABS module has no faults
+    expect(screen.getByText('Scan again')).toBeTruthy();
     fireEvent.click(screen.getByText('P242F 00'));
     expect(screen.getByText('Mileage')).toBeTruthy();
     fireEvent.click(screen.getByText('P242F 00'));
@@ -113,5 +125,12 @@ describe('FaultPanel', () => {
     expect(screen.getByText('No freeze frame')).toBeTruthy();
     fireEvent.click(screen.getByText('Clear DTCs (simulated)'));
     expect(onClear).toHaveBeenCalled();
+  });
+  it('groups a fault whose module is not in the scan list under "Unknown module"', () => {
+    const orphan = [{ address: '55', code: 11, name: 'Ghost', obdCode: '', detail: 'x', status: [], freezeFrame: [] }];
+    render(<FaultPanel modules={modules} faults={orphan} sourceName={null} onClear={() => {}} />);
+    fireEvent.click(screen.getByText('Scan all modules'));
+    expect(screen.getByText('Unknown module')).toBeTruthy();
+    expect(screen.getByText('Ghost')).toBeTruthy();
   });
 });

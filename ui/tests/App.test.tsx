@@ -61,6 +61,7 @@ describe('App', () => {
     expect(screen.getByTestId('status').textContent).toMatch(/^10\.0 Hz · t=1\.0 s · Simulated$/);
     expect(screen.getByText(/replay of LOG.CSV \(2 s loop\)/)).toBeTruthy();
     expect(container.querySelectorAll('.widget')).toHaveLength(9);
+    fireEvent.click(screen.getByText('Scan all modules'));
     expect(screen.getByText('P242F 00')).toBeTruthy();
     expect(storage.getItem(STORAGE_KEY)).toContain('sim.rpm');
   });
@@ -114,6 +115,7 @@ describe('App', () => {
 
   it('clears the simulated DTCs', () => {
     render(<App logs={logs} storage={memoryStorage()} now={now} />);
+    fireEvent.click(screen.getByText('Scan all modules'));
     fireEvent.click(screen.getByText('Clear DTCs (simulated)'));
     expect(screen.queryByText('P242F 00')).toBeNull();
   });
