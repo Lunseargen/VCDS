@@ -1,3 +1,6 @@
+curl -fsSL https://claude.ai/install.sh | bash
+
+
 # A note for Dad
 
 Thanks for the help. There is one job that needs the cable and the car, and there is one
