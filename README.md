@@ -38,7 +38,51 @@ sends. It writes nothing to the cable or the car.
 `tools/handoff/` is a hand-off copy of the probe for a non-technical user on a Mac. The user
 double-clicks `run-probe.command`. The script checks Node.js, installs `node-hid` the first
 time, runs the probe, and saves `probe-output-<date>.txt`. `README.txt` gives the steps. The
-HEX-V2 and HEX-NET cables work on macOS; an older FTDI cable may not appear.
+HEX-V2 and HEX-NET cables work on macOS; an older FTDI cable may not appear. The probe app
+below replaces this Node.js route for a user who has no Node.js.
+
+### Probe app (Electron, macOS)
+
+`tools/probe-app/` packages the read-only probe as a double-click macOS app (decision, 2026-11-09).
+It needs no Node.js and no terminal. It is separate from the main app: it has its own
+`package.json` and does not change `dist/main/index.js`.
+
+- `probe-core.js` holds the probe logic. It takes an injected `HID` object and a `log` function.
+  It never calls `write` or `sendFeatureReport`. A unit test checks this rule.
+- `main.js`, `preload.js`, and `index.html` are the window: a checklist, "Run probe",
+  "Save output" (save dialog, default folder Desktop), and "Copy".
+- Electron is pinned to the exact version `33.4.11`. Electron 33 is the last line that runs on
+  macOS 11 (Big Sur). Do not use a newer Electron: Electron 38 and later need macOS 12.
+  The minimum macOS for the app is 11.0 (`mac.minimumSystemVersion`).
+- node-hid ships N-API prebuilds. The x64 binary has minimum macOS 10.9 and the arm64 binary has
+  minimum macOS 11.0, so no rebuild is needed (`npmRebuild` is `false`).
+
+Build (on a Mac, with Node.js and internet):
+
+```
+cd tools/probe-app
+npm install
+npm test                  # unit tests
+npm run coverage          # needs 100% of probe-core.js
+npm run build             # universal build: x64 + arm64, unsigned
+```
+
+The build writes these files to `tools/probe-app/dist/` (ignored by git):
+`Ross-Tech Probe-1.0.0-universal.dmg` and `Ross-Tech Probe-1.0.0-universal-mac.zip`.
+Send the `.zip` or the `.dmg` to the user.
+
+Older Mac (before macOS 11): `npm run build:legacy` builds an Intel-only app with Electron
+`22.3.27` (minimum macOS 10.13) into `tools/probe-app/dist-legacy/`. The first run downloads
+Electron 22. This build is not tested. Electron 22 has known security fixes missing; use it only
+for this probe.
+
+Run on the user's Mac:
+
+- The app is not signed. The first time, hold Control, click the app, choose Open, then click
+  Open. Or open System Settings > Privacy & Security and click Open Anyway.
+- macOS may ask for Input Monitoring. Allow it in System Settings > Privacy & Security >
+  Input Monitoring, then open the app again.
+- Check the Mac model and the macOS version with Apple menu > About This Mac.
 
 ## Shuffleboard preview (simulated data)
 

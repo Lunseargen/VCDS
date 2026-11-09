@@ -1,0 +1,41 @@
+{
+  "name": "rosstech-probe-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read-only Ross-Tech cable probe, packaged as a macOS app.",
+  "author": "VCDS project",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "vitest run --config vitest.config.mjs",
+    "coverage": "vitest run --config vitest.config.mjs --coverage",
+    "build": "electron-builder --mac --universal",
+    "build:legacy": "electron-builder --mac --x64 -c.electronVersion=22.3.27 -c.mac.minimumSystemVersion=10.13 -c.directories.output=dist-legacy"
+  },
+  "dependencies": {
+    "node-hid": "^3.2.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8",
+    "vitest": "^3.2.4"
+  },
+  "build": {
+    "appId": "com.vcds.rosstech-probe",
+    "npmRebuild": false,
+    "productName": "Ross-Tech Probe",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "index.html", "probe-core.js", "package.json"],
+    "asarUnpack": ["**/node_modules/node-hid/**"],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.utilities",
+      "identity": null,
+      "minimumSystemVersion": "11.0",
+      "extendInfo": {
+        "NSInputMonitoringUsageDescription": "The probe reads the Ross-Tech cable. It never writes to it."
+      }
+    }
+  }
+}

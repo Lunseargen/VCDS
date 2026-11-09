@@ -27,3 +27,8 @@ extract_decomp.groovy
 # Probe output from the hand-off tool (may contain a VIN).
 tools/handoff/probe-output-*.txt
 probe.txt
+
+# Probe app build output and dependencies.
+tools/probe-app/dist/
+tools/probe-app/dist-legacy/
+tools/probe-app/node_modules/

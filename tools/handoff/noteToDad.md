@@ -16,32 +16,35 @@ your Mac. It takes about 5 minutes.
 
 - The Ross-Tech cable (the HEX-V2, HEX-NET, or the older cable).
 - The car.
-- Your Mac.
+- Your Mac. It must run macOS 11 (Big Sur) or newer. To check: click the Apple menu, then
+  **About This Mac**. If your Mac is older, text me the model and the version.
+- The file `Ross-Tech Probe-1.0.0-universal-mac.zip` that I sent you.
+
+You do not need to install anything else. You do not need the Terminal.
 
 ### The steps
 
-1. Plug the cable into the Mac and into the car's diagnostic port (under the dash, near the
+1. Double-click the `.zip` file. The Mac makes an app named **Ross-Tech Probe**. Drag the app
+   to the Desktop.
+2. Plug the cable into the Mac and into the car's diagnostic port (under the dash, near the
    steering wheel).
-2. Turn the car key to "on". The engine does not need to run.
-3. Close VCDS and any other car program on the Mac.
-4. Open the folder I sent you, named `handoff`.
-5. Double-click the file `run-probe.command`.
-6. A black window opens. Read it and press Return when it asks.
-7. Wait a few seconds. The tool makes a file with a name like
+3. Turn the car key to "on". The engine does not need to run.
+4. Close VCDS and any other car program on the Mac.
+5. Open the app **Ross-Tech Probe** (see "The first time only" below).
+6. Click **Run probe**. Wait about 5 seconds.
+7. Click **Save output**. The file goes to the Desktop with a name like
    `probe-output-2026-11-09T14-30-00.txt`.
-8. Send me that file (text me it, or email it).
+8. Send me that file (text me it, or email it). Or click **Copy** and paste the text in a message.
 
 That is all I need. Thank you.
 
 ### The first time only
 
-- The Mac may ask you to install "Node.js". The tool opens the download page for you. Install
-  the **LTS** version, then double-click `run-probe.command` again.
-- The Mac may say the file is from an "unknown developer". To allow it: hold the **Control**
-  key, click the file, choose **Open**, then click **Open** again.
-- The Mac may ask for "Input Monitoring". Open **System Settings > Privacy & Security >
-  Input Monitoring**, turn on **Terminal**, then run the tool again.
-- The tool needs the internet the first time, to download one small helper.
+- The Mac may say the app is from an "unknown developer". This is normal. To allow it: hold the
+  **Control** key, click the app, choose **Open**, then click **Open** again. Or open
+  **System Settings > Privacy & Security**, scroll down, and click **Open Anyway**.
+- The Mac may ask for "Input Monitoring". Click **Allow**. Or open **System Settings >
+  Privacy & Security > Input Monitoring**, turn on **Ross-Tech Probe**, then open the app again.
 
 ### If it cannot find the cable
 
