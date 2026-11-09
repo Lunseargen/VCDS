@@ -52,7 +52,7 @@ starts with VW and Audi vehicles and uses an extensible framework for other VAG 
 
 ## 2. Stages and tasks (WBS + IPO)
 
-Status (2026-11-09): Plan complete. The next task is [2.1 data-model](#t-2-1).
+Status (2026-11-09): Plan complete. Task 2.1 complete. The next task is [2.2](#t-2-2).
 
 ```mermaid
 flowchart LR
@@ -320,7 +320,7 @@ flowchart LR
 **Done when:** Both adapters pass the same set of integration tests against a live vehicle ECU or simulator.
 
 <a id="t-2-1"></a>
-- [ ] **2.1 Define HAL interface (TypeScript types + tests)** ([D2](DECISIONS.md))
+- [x] **2.1 Define HAL interface (TypeScript types + tests)** ([D2](DECISIONS.md))
 
   <details>
   <summary>2.1 IPO card</summary>

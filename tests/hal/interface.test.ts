@@ -149,7 +149,7 @@ describe('Factory pattern', () => {
 
 // Test each method call individually
 describe('Individual method calls', async () => {
-  const hal: HalInterface = getAdapter(AdapterType.OBDLink);
+  const hal: HalInterface = getAdapter('OBDLink');
 
   it('scan returns array of addresses', async () => {
     const addresses = await hal.scan();

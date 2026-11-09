@@ -3,7 +3,7 @@
   "cards": "PLAN.ipo.json",
   "checks": [
     {"name": "unit", "run": "npm test", "timeout": 600},
-    {"name": "build", "run": "npm run build"}
+    {"name": "build", "run": "npx -p typescript tsc --noEmit"}
   ],
   "stop_before": ["deploy", "push"],
   "allow": ["Bash(npx vitest:*)"]

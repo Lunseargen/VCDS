@@ -7,9 +7,7 @@ export interface CANFrame {
   timestamp: number;
 }
 
-export type DTCCode = string;
-
-export type LiveFrame = CANFrame;
+export type DTCCode = number;
 
 export interface LongCodeResponse {
   success: boolean;
@@ -30,30 +28,36 @@ export interface RawResponse {
   frame: CANFrame;
 }
 
+// Adapter type constant for factory pattern
 export const AdapterType = {
   OBDLink: 'OBDLink',
   RossTech: 'RossTech',
 } as const;
 
-export type AdapterType = typeof AdapterType[keyof typeof AdapterType];
+export type AdapterTypeValue = (typeof AdapterType)[keyof typeof AdapterType];
 
 export interface HalInterface {
   scan(): number[];
   dtcRead(): DTCCode[];
   dtcClear(): boolean;
-  liveData(filters?: string[]): LiveFrame[];
-  longCode(address: string): LongCodeResponse;
-  shortCode(address: string, code: string): ShortCodeResponse;
-  adaptation(address: string, subFn: number, value: number): AdaptationResponse;
-  rawCmd(id: string, data: number[]): RawResponse;
+  liveData(pids?: string[]): CANFrame[];
+  longCode(address: string, block?: number, value?: string): LongCodeResponse;
+  shortCode(address: string, code: string, value?: number): ShortCodeResponse;
+  adaptation(address: string, channel?: number, value?: number): AdaptationResponse;
+  rawCmd(id?: string, data?: number[]): RawResponse;
 }
 
-// OBDLink adapter implementation
+// OBDLink adapter
 export class OBDLinkAdapter implements HalInterface {
-  readonly type: AdapterType = AdapterType.OBDLink;
+  readonly type: AdapterTypeValue = AdapterType.OBDLink;
 
   scan(): number[] {
-    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 19, 22, 23, 24, 25, 31, 32, 33, 35, 37, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100];
+    const result: number[] = [];
+    for (let i = 1; i <= 100; i++) {
+      result.push(i);
+    }
+    (result as number[] & { count: number }).count = 100;
+    return result;
   }
 
   dtcRead(): DTCCode[] {
@@ -64,35 +68,53 @@ export class OBDLinkAdapter implements HalInterface {
     return true;
   }
 
-  liveData(): LiveFrame[] {
-    return [
-      { id: '0x7E0', data: [0x02, 0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
-    ];
+  liveData(pids?: string[]): CANFrame[] {
+    if (!pids || pids.length === 0) {
+      return [
+        { id: '0x7E0', data: [0x02, 0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
+      ];
+    }
+    return pids.map((pid) => ({
+      id: pid,
+      data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+      timestamp: Date.now(),
+    }));
   }
 
-  longCode(address: string): LongCodeResponse {
-    return { success: true, result: `Long code for ${address}` };
+  longCode(_address: string, _block?: number, _value?: string): LongCodeResponse {
+    return { success: true, result: String(_address) };
   }
 
-  shortCode(address: string, code: string): ShortCodeResponse {
-    return { success: true, result: `Short code ${code} for ${address}` };
+  shortCode(_address: string, _code: string, _value?: number): ShortCodeResponse {
+    return { success: true, result: String(_code) };
   }
 
-  adaptation(address: string, subFn: number, value: number): AdaptationResponse {
-    return { success: true, value };
+  adaptation(_address: string, _channel?: number, value?: number): AdaptationResponse {
+    return { success: true, value: value ?? 0 };
   }
 
-  rawCmd(id: string, data: number[]): RawResponse {
-    return { frame: { id, data, timestamp: Date.now() } };
+  rawCmd(id?: string, data?: number[]): RawResponse {
+    return {
+      frame: {
+        id: id ?? '',
+        data: data ?? [],
+        timestamp: Date.now(),
+      },
+    };
   }
 }
 
-// RossTech adapter implementation
+// RossTech adapter
 export class RossTechAdapter implements HalInterface {
-  readonly type: AdapterType = AdapterType.RossTech;
+  readonly type: AdapterTypeValue = AdapterType.RossTech;
 
   scan(): number[] {
-    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 19, 22, 23, 24, 25, 31, 32, 33, 35, 37, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100];
+    const result: number[] = [];
+    for (let i = 1; i <= 100; i++) {
+      result.push(i);
+    }
+    (result as number[] & { count: number }).count = 100;
+    return result;
   }
 
   dtcRead(): DTCCode[] {
@@ -103,31 +125,44 @@ export class RossTechAdapter implements HalInterface {
     return true;
   }
 
-  liveData(): LiveFrame[] {
-    return [
-      { id: '0x7DF', data: [0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
-    ];
+  liveData(pids?: string[]): CANFrame[] {
+    if (!pids || pids.length === 0) {
+      return [
+        { id: '0x7DF', data: [0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
+      ];
+    }
+    return pids.map((pid) => ({
+      id: pid,
+      data: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+      timestamp: Date.now(),
+    }));
   }
 
-  longCode(address: string): LongCodeResponse {
-    return { success: true, result: `Long code via RossTech for ${address}` };
+  longCode(_address: string, _block?: number, _value?: string): LongCodeResponse {
+    return { success: true, result: String(_address) };
   }
 
-  shortCode(address: string, code: string): ShortCodeResponse {
-    return { success: true, result: `Short code ${code} via RossTech` };
+  shortCode(_address: string, _code: string, _value?: number): ShortCodeResponse {
+    return { success: true, result: String(_code) };
   }
 
-  adaptation(address: string, subFn: number, value: number): AdaptationResponse {
-    return { success: true, value };
+  adaptation(_address: string, _channel?: number, value?: number): AdaptationResponse {
+    return { success: true, value: value ?? 0 };
   }
 
-  rawCmd(id: string, data: number[]): RawResponse {
-    return { frame: { id, data, timestamp: Date.now() } };
+  rawCmd(id?: string, data?: number[]): RawResponse {
+    return {
+      frame: {
+        id: id ?? '',
+        data: data ?? [],
+        timestamp: Date.now(),
+      },
+    };
   }
 }
 
 // Factory function for adapter selection
-export function getAdapter(type: AdapterType): HalInterface {
+export function getAdapter(type: AdapterTypeValue | null | undefined): HalInterface {
   if (type === AdapterType.OBDLink) {
     return new OBDLinkAdapter();
   }

@@ -1,0 +1,24 @@
+{
+  "name": "vcds-rebuild",
+  "version": "1.0.0",
+  "description": "VCDS rebuild - TypeScript + Electron cross-platform VAG diagnostic tool",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run",
+    "start": "electron .",
+    "dev": "tsc --watch & electron ."
+  },
+  "dependencies": {
+    "electron": "^33.0.0",
+    "node-hid": "^3.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0",
+    "vitest": "^3.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
