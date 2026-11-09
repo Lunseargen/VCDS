@@ -161,6 +161,9 @@ export class RossTechAdapter implements HalInterface {
   }
 }
 
+// Re-export OBDLinkHIDAdapter from obdlink module
+export { OBDLinkHIDAdapter } from './obdlink';
+
 // Factory function for adapter selection
 export function getAdapter(type: AdapterTypeValue | null | undefined): HalInterface {
   if (type === AdapterType.OBDLink) {
