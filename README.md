@@ -44,6 +44,8 @@ HEX-V2 and HEX-NET cables work on macOS; an older FTDI cable may not appear.
 
 `npm run dev:ui` starts the dashboard at http://localhost:5175/ (decision D14, 2026-11-09). It needs no vehicle: `SimulatedAdapter` (`src/hal/sim.ts`) gives the data through `liveData()` at 10 Hz.
 
+**One-click start.** `run.sh` (macOS and Linux) and `start-dashboard.command` (Mac double-click) do the same thing without a terminal command: they check Node.js, install the libraries the first time, start the server, and open the browser. Press Control-C, or close the window, to stop.
+
 - **Data.** When the server starts, `ui/logsPlugin.ts` reads the VCDS logs in each top-level `<4 digits>-*` directory (for example `2010-Q7/`), or in the comma list in `VCDS_LOG_DIRS`. The first CSV measuring-block log loops as the log channels (`093.1`, `176.1`, ...). The first scan log gives the modules and the fault memory. The `sim.*` channels are a synthetic 120 s drive cycle. The logs never go into git.
 - **Views.** The select at the right of each widget header changes the view: Gauge, Bar, Lamps, Number, or Graph.
 - **Layout.** Drag the header to move a widget. Drag the right side, the bottom, or the corner to resize it. **Edit** adds a widget, changes its channel, or removes it. The browser keeps the layout in localStorage (`vcds.shuffleboard.v1`).
