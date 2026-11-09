@@ -153,7 +153,7 @@ describe('Individual method calls', async () => {
 
   it('scan returns array of addresses', async () => {
     const addresses = await hal.scan();
-    expect(Array.isArray(addresses)).toBe(true);
+    expect(Array.isArray(addresses.names)).toBe(true);
   });
 
   it('dtcRead returns DTC codes', async () => {

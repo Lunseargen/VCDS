@@ -9,6 +9,8 @@ export interface CANFrame {
 
 export type DTCCode = number;
 
+export type ScanResult = { count: number; names: number[] };
+
 export interface LongCodeResponse {
   success: boolean;
   result: string;
@@ -37,7 +39,7 @@ export const AdapterType = {
 export type AdapterTypeValue = (typeof AdapterType)[keyof typeof AdapterType];
 
 export interface HalInterface {
-  scan(): number[];
+  scan(): ScanResult;
   dtcRead(): DTCCode[];
   dtcClear(): boolean;
   liveData(pids?: string[]): CANFrame[];
@@ -51,13 +53,12 @@ export interface HalInterface {
 export class OBDLinkAdapter implements HalInterface {
   readonly type: AdapterTypeValue = AdapterType.OBDLink;
 
-  scan(): number[] {
-    const result: number[] = [];
+  scan(): ScanResult {
+    const names: number[] = [];
     for (let i = 1; i <= 100; i++) {
-      result.push(i);
+      names.push(i);
     }
-    (result as number[] & { count: number }).count = 100;
-    return result;
+    return { count: names.length, names };
   }
 
   dtcRead(): DTCCode[] {
@@ -108,13 +109,12 @@ export class OBDLinkAdapter implements HalInterface {
 export class RossTechAdapter implements HalInterface {
   readonly type: AdapterTypeValue = AdapterType.RossTech;
 
-  scan(): number[] {
-    const result: number[] = [];
+  scan(): ScanResult {
+    const names: number[] = [];
     for (let i = 1; i <= 100; i++) {
-      result.push(i);
+      names.push(i);
     }
-    (result as number[] & { count: number }).count = 100;
-    return result;
+    return { count: names.length, names };
   }
 
   dtcRead(): DTCCode[] {
@@ -128,7 +128,7 @@ export class RossTechAdapter implements HalInterface {
   liveData(pids?: string[]): CANFrame[] {
     if (!pids || pids.length === 0) {
       return [
-        { id: '0x7DF', data: [0x03, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
+        { id: '0x7E0', data: [0x02, 0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00], timestamp: Date.now() },
       ];
     }
     return pids.map((pid) => ({
