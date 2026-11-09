@@ -66,6 +66,50 @@ Job 1.
 
 ---
 
+## Job 3 (optional): Use your Claude to go further
+
+You have Claude too. Claude can read this project and the probe file, and work out the next
+step to make the cable talk to the car. You do not need to know the code. You give Claude the
+files and one instruction, and Claude does the work.
+
+> **CAUTION:** The write parts of this software are not finished. A wrong command can change a
+> setting in the car. Tell Claude to stay **read-only**. Do not let Claude send any command to
+> the car until Jack checks the work first.
+
+### The steps
+
+1. Finish Job 1 first. You need the `probe-output-...txt` file.
+2. Open the main project folder (the one named `VCDS`).
+3. Open Claude on that folder:
+   - In the Claude app: start a new chat, then drag the `VCDS` folder into the chat.
+   - Or, in Claude Code (the terminal tool): open the Terminal, type `cd ` and a space, drag
+     the `VCDS` folder onto the window, press Return, then type `claude` and press Return.
+4. Also give Claude the `probe-output-...txt` file from Job 1 (drag it in, or tell Claude the
+   file name).
+5. Copy the instruction below and paste it to Claude.
+
+### The instruction to paste
+
+```
+I have a Ross-Tech VCDS cable and this project. Read docs/hardware/rosstech-protocol.md
+and the probe-output file I gave you. Work out the cable's USB framing (Layer 1) from the
+probe output. Then tell me, in plain words, what you found and what the next step is.
+
+Rules:
+- Stay read-only. Do not send any command to the cable or the car.
+- Do not change src/hal/ross-tech.ts yet. Only explain the plan.
+- Do not try to open or decode the protected VCDS.exeL file.
+
+When you have the plan, write it to a new file named docs/hardware/next-step.md, and tell me
+to send that file to Jack.
+```
+
+6. When Claude finishes, send me the new file `docs/hardware/next-step.md`. I take it from there.
+
+This part is optional. Job 1 is the one I really need. Job 3 only helps me go faster.
+
+---
+
 ## One more time: it is safe
 
 The probe only **reads**. It sends nothing to the cable and nothing to the car. It cannot
