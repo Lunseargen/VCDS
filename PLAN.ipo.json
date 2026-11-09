@@ -1186,5 +1186,89 @@
       ]
     ],
     "edges": "a>p1 b>p1 a>p2 b>p2 b>p3 p1>o1 p2>o1 p3>o1 p1>o2 p2>o2"
+  },
+  "2.6": {
+    "titles": {
+      "P": "Process: manual capture with the OBDeleven app"
+    },
+    "input": [
+      [
+        "a",
+        "OBDeleven device and app (N11)"
+      ],
+      [
+        "b",
+        "Phone Bluetooth log (N12)"
+      ],
+      [
+        "c",
+        "Live VW/Audi vehicle (N7)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "List the GATT services and characteristics (nRF Connect or `chrome://bluetooth-internals`)"
+      ],
+      [
+        "p2",
+        "Capture the app traffic for scan, live data, and DTC read"
+      ],
+      [
+        "p3",
+        "Decode the frames; find the UDS/KWP payload; check encryption (gate FM-16)"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`docs/hardware/obdeleven-protocol.md`"
+      ],
+      [
+        "o2",
+        "Capture fixtures with no VIN in `tests/hal/fixtures/`"
+      ]
+    ],
+    "edges": "a>p1 a>p2 b>p2 c>p2 b>p3 p1>o1 p2>o2 p3>o1 p3>o2"
+  },
+  "2.7": {
+    "titles": {
+      "P": "Process: `src/hal/obdeleven.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "Protocol document and fixtures (task 2.6)"
+      ],
+      [
+        "b",
+        "`HalInterface` (`src/hal/interface.ts`)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "BLE transport with a mock for the tests"
+      ],
+      [
+        "p2",
+        "Read paths: connect, scan, liveData, dtcRead"
+      ],
+      [
+        "p3",
+        "Add the adapter to `getAdapter`"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/obdeleven.ts`"
+      ],
+      [
+        "o2",
+        "`tests/hal/obdeleven.test.ts` that replays the fixtures"
+      ]
+    ],
+    "edges": "a>p1 a>p2 b>p2 b>p3 p1>o1 p2>o1 p3>o1 p2>o2"
   }
 }

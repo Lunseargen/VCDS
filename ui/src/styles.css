@@ -1,0 +1,109 @@
+:root {
+  /* Light theme: the default (Jack, 2026-11-09). */
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --line: #d4dae2;
+  --text: #17202b;
+  --muted: #5b6676;
+  --accent: #0a6fd6;
+  --ok: #12804a;
+  --warn: #a05c00;
+  --bad: #cf2c2c;
+  --badge-bg: #e7e8fb;
+  --badge-text: #3b3fa6;
+  --badge-log-bg: #dcf2e5;
+  --badge-calc-bg: #fbeed6;
+  --lamp-on-text: #ffffff;
+  --handle-filter: none;
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  --bg: #0f1216;
+  --panel: #171b21;
+  --line: #2a313b;
+  --text: #e6e9ee;
+  --muted: #8b95a3;
+  --accent: #4fb3ff;
+  --ok: #3ddc84;
+  --warn: #ffb547;
+  --bad: #ff5d5d;
+  --badge-bg: #2c2f45;
+  --badge-text: #b7b9ff;
+  --badge-log-bg: #1d3a2b;
+  --badge-calc-bg: #3a2f12;
+  --lamp-on-text: #06210f;
+  --handle-filter: invert(1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, sans-serif; }
+button, select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font: inherit; }
+button:hover { border-color: var(--accent); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.toolbar h1 { font-size: 18px; margin: 0; }
+.preview { color: var(--warn); font-size: 12px; border: 1px solid var(--warn); border-radius: 10px; padding: 1px 8px; }
+.spacer { flex: 1; }
+.status { color: var(--muted); font-variant-numeric: tabular-nums; }
+.source { padding: 6px 16px; color: var(--muted); font-size: 12px; }
+.error { color: var(--bad); }
+.main { display: flex; gap: 10px; padding: 0 10px 10px; }
+.grid-wrap { flex: 1; min-width: 0; }
+.widget { height: 100%; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.widget-head { display: flex; gap: 6px; align-items: center; padding: 4px 8px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); cursor: move; }
+.widget-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { font-size: 10px; padding: 0 5px; border-radius: 6px; background: var(--badge-bg); color: var(--badge-text); }
+.badge.calc { background: var(--badge-calc-bg); color: var(--warn); }
+.badge.log { background: var(--badge-log-bg); color: var(--ok); }
+.widget-edit { display: flex; gap: 4px; padding: 4px; }
+.widget-edit select { flex: 1; min-width: 0; font-size: 11px; }
+.widget-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 6px; min-height: 0; }
+.missing { color: var(--bad); }
+.gauge { width: 100%; height: 100%; }
+.gauge-track { fill: none; stroke: var(--line); stroke-width: 8; stroke-linecap: round; }
+.gauge-fill { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; }
+.gauge-needle { stroke: var(--text); stroke-width: 2; }
+.gauge-hub { fill: var(--text); }
+.gauge-value { fill: var(--text); font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.gauge-unit { fill: var(--muted); font-size: 9px; }
+.bar { width: 100%; }
+.bar-track { height: 14px; background: var(--line); border-radius: 7px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--accent); transition: width 90ms linear; }
+.bar-text, .graph-text { margin-top: 4px; font-variant-numeric: tabular-nums; }
+.unit { color: var(--muted); font-size: 12px; }
+.lamps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 100%; }
+.lamp { text-align: center; padding: 6px 0; border-radius: 4px; background: var(--line); color: var(--muted); font-size: 11px; }
+.lamp.on { background: var(--ok); color: var(--lamp-on-text); font-weight: 600; }
+.textvalue { display: flex; align-items: baseline; gap: 6px; }
+.textvalue .big { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.graph { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.graph svg { flex: 1; width: 100%; min-height: 0; }
+.graph-axis { stroke: var(--line); }
+.graph-line { fill: none; stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.faults { width: 300px; flex-shrink: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 10px; align-self: flex-start; }
+.faults h2 { font-size: 14px; margin: 8px 0; }
+.count { background: var(--bad); color: #fff; border-radius: 8px; padding: 0 6px; font-size: 11px; }
+.muted { color: var(--muted); }
+.small { font-size: 11px; }
+.module { margin-bottom: 6px; }
+.fault { border-top: 1px solid var(--line); padding: 6px 0; }
+.fault-head { background: none; border: none; padding: 0; text-align: left; cursor: pointer; }
+.code { color: var(--warn); font-weight: 600; }
+.freeze { width: 100%; font-size: 11px; margin-top: 4px; border-collapse: collapse; }
+.freeze td { padding: 1px 4px; border-bottom: 1px solid var(--line); }
+.clear { margin-top: 8px; width: 100%; }
+.custom-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-top: 10px; }
+.custom-panel h2 { font-size: 14px; margin: 0 0 8px; }
+.custom-panel form { display: flex; flex-wrap: wrap; gap: 6px; }
+.custom-panel input { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font: inherit; min-width: 0; }
+.custom-panel .formula { flex: 1; min-width: 180px; font-family: ui-monospace, monospace; }
+.custom-panel .short { width: 90px; }
+.custom-row { padding: 4px 0; border-top: 1px solid var(--line); }
+.custom-row code { color: var(--accent); }
+.react-grid-item.react-grid-placeholder { background: var(--accent); }
+@media (max-width: 800px) { .main { flex-direction: column; } .faults { width: 100%; } }
+
+.widget-head .view { margin-left: auto; background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 4px; font: inherit; font-size: 11px; padding: 0 2px; cursor: pointer; }
+.widget-head .view:hover, .widget-head .view:focus { border-color: var(--line); color: var(--text); }
+.widget-head { cursor: move; }
+.react-grid-item > .react-resizable-handle { opacity: 0.35; filter: var(--handle-filter); }
+.react-grid-item:hover > .react-resizable-handle { opacity: 1; }

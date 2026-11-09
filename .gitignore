@@ -1,2 +1,29 @@
-
 .factory/
+
+# Dependencies and build output
+node_modules/
+coverage/
+dist/
+build/
+
+# OS files
+.DS_Store
+
+# VCDS data logs (may contain a VIN). Keep these out of git.
+2010-Q7/
+2013-Q7/
+
+# Vendor software and decompiled output (large, copyrighted). Keep these out of git.
+Software/
+decomp_output/
+*.sif
+
+# Local decompile helper scripts
+ExportAllDecompiled.java
+export_all.groovy
+extract_all.js
+extract_decomp.groovy
+
+# Probe output from the hand-off tool (may contain a VIN).
+tools/handoff/probe-output-*.txt
+probe.txt

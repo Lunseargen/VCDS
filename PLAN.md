@@ -550,6 +550,102 @@ flowchart LR
 
   </details>
 
+<a id="t-2-6"></a>
+- [ ] **2.6 OBDeleven: capture and decode its Bluetooth LE protocol** ([D15](DECISIONS.md))
+
+  Manual task. Needs the OBDeleven device (N11), a phone with the OBDeleven app and a Bluetooth log (N12), and a live VW/Audi vehicle (N7).
+
+  **Caution:** During the capture, use the app only to connect, scan, read live data, and read DTCs. Do not clear DTCs, code, or adapt in the app.
+
+  **Caution:** Gate FM-16. If the payload is encrypted or signed for each session, stop and record the result. Do not try to break the encryption.
+
+  <details>
+  <summary>2.6 IPO card</summary>
+
+  <!-- ipo:2.6 -->
+  ```mermaid
+  flowchart LR
+      subgraph I ["Input"]
+          a["OBDeleven device and app (N11)"]:::in
+          b["Phone Bluetooth log (N12)"]:::in
+          c["Live VW/Audi vehicle (N7)"]:::in
+      end
+      subgraph P ["Process: manual capture with the OBDeleven app"]
+          p1["List the GATT services and characteristics (nRF Connect or <code>chrome://bluetooth-internals</code>)"]:::pr
+          p2["Capture the app traffic for scan, live data, and DTC read"]:::pr
+          p3["Decode the frames; find the UDS/KWP payload; check encryption (gate FM-16)"]:::pr
+      end
+      subgraph O ["Output"]
+          o1["<code>docs/hardware/obdeleven-protocol.md</code>"]:::ou
+          o2["Capture fixtures with no VIN in <code>tests/hal/fixtures/</code>"]:::ou
+      end
+      a --> p1
+      a --> p2
+      b --> p2
+      c --> p2
+      b --> p3
+      p1 --> o1
+      p2 --> o2
+      p3 --> o1
+      p3 --> o2
+      classDef in fill:#dbeafe,stroke:#2563eb,color:#111
+      classDef pr fill:#fef3c7,stroke:#d97706,color:#111
+      classDef ou fill:#dcfce7,stroke:#16a34a,color:#111
+      style I fill:none,stroke:none
+      style P fill:none,stroke:none
+      style O fill:none,stroke:none
+  ```
+
+  **Done when:** `docs/hardware/obdeleven-protocol.md` names the GATT service and characteristic UUIDs, the request and answer frame format, and the result of gate FM-16; 3 captured exchanges (scan, live data, DTC read) are test fixtures with no VIN.
+
+  </details>
+
+<a id="t-2-7"></a>
+- [ ] **2.7 Implement the OBDeleven adapter** ([D15](DECISIONS.md))
+
+  Depends on [2.6](#t-2-6). Do this task only if gate FM-16 passes.
+
+  **Caution:** Read-only on a vehicle, as for 2.4: connect, scan, live data, and DTC read only.
+
+  <details>
+  <summary>2.7 IPO card</summary>
+
+  <!-- ipo:2.7 -->
+  ```mermaid
+  flowchart LR
+      subgraph I ["Input"]
+          a["Protocol document and fixtures (task 2.6)"]:::in
+          b["<code>HalInterface</code> (<code>src/hal/interface.ts</code>)"]:::in
+      end
+      subgraph P ["Process: <code>src/hal/obdeleven.ts</code>"]
+          p1["BLE transport with a mock for the tests"]:::pr
+          p2["Read paths: connect, scan, liveData, dtcRead"]:::pr
+          p3["Add the adapter to <code>getAdapter</code>"]:::pr
+      end
+      subgraph O ["Output"]
+          o1["<code>src/hal/obdeleven.ts</code>"]:::ou
+          o2["<code>tests/hal/obdeleven.test.ts</code> that replays the fixtures"]:::ou
+      end
+      a --> p1
+      a --> p2
+      b --> p2
+      b --> p3
+      p1 --> o1
+      p2 --> o1
+      p3 --> o1
+      p2 --> o2
+      classDef in fill:#dbeafe,stroke:#2563eb,color:#111
+      classDef pr fill:#fef3c7,stroke:#d97706,color:#111
+      classDef ou fill:#dcfce7,stroke:#16a34a,color:#111
+      style I fill:none,stroke:none
+      style P fill:none,stroke:none
+      style O fill:none,stroke:none
+  ```
+
+  **Done when:** `src/hal/obdeleven.ts` implements `HalInterface` read paths over a mocked BLE transport; the tests replay the 2.6 fixtures; `getAdapter` can return it; the write methods return `success: false`.
+
+  </details>
+
 <a id="s-3"></a>
 ### Stage 3 — Core VCDS Features
 
@@ -1322,6 +1418,7 @@ action, a RAID Risk row, a CAUTION, and a test. Run `render_ipo.py ... --pareto`
 | FM-13 | 2.3/p1 | The heartbeat reconnect blocks the thread for about 2 s, or leaves `connected = true` with no device | The Electron main process freezes all windows and IPC after a cable unplug. In a context that forbids `Atomics.wait`, the adapter says "connected" with no device | `_reconnect` calls `sleepSync` (`Atomics.wait`) 2 x 1000 ms inside a timer callback. An exception from `Atomics.wait` exits before `connected = false` | it.fails tests `test_edge_reconnect_does_not_block_event_loop`, `test_edge_reconnect_state_is_consistent_when_sleep_throws` | 5 | 5 | 4 | 100 | Fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). |
 | FM-14 | 2.3/p3 | `liveData()` or `scan()` reads an old answer that belongs to an earlier request | Live data shows a wrong value; scan lists a phantom ECU | `dtcRead`, `dtcClear`, coding calls, and the heartbeat ping write a request and never read its answer. Nothing drains the HID input buffer before a new request | it.fails tests `test_edge_liveData_does_not_return_a_stale_dtc_answer`, `test_edge_scan_does_not_count_a_stale_answer_as_an_ecu` | 8 | 6 | 6 | 288 | Fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). |
 | FM-15 | 2.3/p4 | `getAdapter()` returns an adapter that the caller cannot connect | A caller that holds only `HalInterface` gets 0 ECUs, `[]` live data, and `false` from every write, with no error. Before 2.3 the same call gave the stub (100 ECUs) | `getAdapter` returns an unconnected `RossTechUSBAdapter` for RossTech, null, undefined, and unknown types. `HalInterface` has no `connect()`. The OBDLink branch still returns the 2.1 stub, so decision 5 ("same pattern as OBDLink") is not true | it.fails tests `test_edge_getAdapter_result_can_reach_the_cable_through_HalInterface`, `test_edge_getAdapter_OBDLink_uses_the_same_pattern_as_RossTech` | 6 | 7 | 4 | 168 | Prevent: add `connect()`/`disconnect()`/`isConnected()` to `HalInterface` or let `getAdapter` connect; make both branches return the HID adapter; decide if an unknown type throws. Needs a Jack decision Open: wiring in [2.5](#t-2-5). |
+| FM-16 | 2.6/p3 | The OBDeleven payload is encrypted or signed for each session | No OBDeleven adapter is possible; tasks 2.6 and 2.7 give no live data | The device and the app agree on a session key; the captured frames show no readable UDS/KWP bytes | Compare the captured payload with the known UDS request for the same action (for example `22 F1 90`); random bytes for the same request mean encryption | 6 | 7 | 2 | 84 | Stop point: if the check finds encryption, record it in `docs/hardware/obdeleven-protocol.md` and close 2.7 as not possible. Open: [2.6](#t-2-6). |
 
 FTA for FM-3 (S = 9, worst cause):
 
@@ -1352,3 +1449,5 @@ where a secret lives, never its value. See the project-plan skill, `references/r
 | N8 | VCDS installed files (Codes.dat, .rod, .lbl, .SCL) | data | file:Software/installed/ | ready |
 | N9 | Ghidra decompilation output (optional, for reference) | data | file:decomp_output/VCDS_project.rep/ | ready |
 | N10 | GitHub access for repo (if using remote) | secret | file:/Users/jackjin/.gitconfig | ready |
+| N11 | OBDeleven Bluetooth device, paired to the OBDeleven app | access | manual | open |
+| N12 | Phone with a Bluetooth log: Android "Bluetooth HCI snoop log", or iPhone with the Apple Bluetooth logging profile and PacketLogger on the Mac | tool | manual | open |

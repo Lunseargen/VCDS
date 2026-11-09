@@ -1,0 +1,10 @@
+{
+  "name": "rosstech-probe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only probe for a Ross-Tech USB cable.",
+  "dependencies": {
+    "node-hid": "^3.2.0"
+  }
+}
