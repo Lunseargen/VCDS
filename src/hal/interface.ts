@@ -1,5 +1,7 @@
 // VCDS HAL Interface types derived from operation trace (R3-R10)
-// CAN frame: 4-byte hex id, 8-byte data array, timestamp in ms
+// CAN frame: hex id, data array, timestamp in ms.
+// The 2.1 stubs give 8 data bytes. RossTechUSBAdapter.liveData gives 7 data bytes:
+// report[1..7] of an 8-byte HID report, after the PID table index in report[0] (task 2.3).
 
 export interface CANFrame {
   id: string;
@@ -163,6 +165,9 @@ export class RossTechAdapter implements HalInterface {
 
 // Re-export OBDLinkHIDAdapter from obdlink module
 export { OBDLinkHIDAdapter } from './obdlink';
+
+// Re-export RossTechUSBAdapter from ross-tech module
+export { RossTechUSBAdapter } from './ross-tech';
 
 // Factory function for adapter selection
 export function getAdapter(type: AdapterTypeValue | null | undefined): HalInterface {

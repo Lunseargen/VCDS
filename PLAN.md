@@ -38,7 +38,7 @@ starts with VW and Audi vehicles and uses an extensible framework for other VAG 
 | ID | Requirement | Measure | Work items | Verification | Level | Status |
 |---|---|---|---|---|---|---|
 | R1 | App launches on Windows, macOS, and Linux | MOP | [2.1](#t-2-1), [2.2](#t-2-2) | `npm test` passes on all platforms | System | open |
-| R2 | Hardware layer communicates through OBDLink Bluetooth and Ross-Tech USB-CAN | MOP | [2.3](#t-2-3) | `test_hardware_abstraction.py` | Unit | open |
+| R2 | Hardware layer communicates through OBDLink Bluetooth and Ross-Tech USB-CAN | MOP | [2.3](#t-2-3), [2.4](#t-2-4), [2.5](#t-2-5) | `tests/hal/ross-tech.test.ts` (mocked `node-hid`); live check in [2.4](#t-2-4) | Unit | open (mock pass 2026-11-09; hardware proof in 2.4) |
 | R3 | Scan module identifies all 30+ ECUs and reports status | MOP | [3.2](#t-3-2) | Parse scan output, verify 30+ module entries | Integration | open |
 | R4 | Read and clear DTCs from all modules | MOP | [3.2](#t-3-2) | `test_dtc_read_clear.py` | Unit | open |
 | R5 | Live data streaming at ≥10 Hz with real-time updates | MOP | [3.3](#t-3-3) | Measure frame rate, verify ≥10Hz | System | open |
@@ -52,7 +52,7 @@ starts with VW and Audi vehicles and uses an extensible framework for other VAG 
 
 ## 2. Stages and tasks (WBS + IPO)
 
-Status (2026-11-09): Plan complete. Tasks 2.1–2.2 complete. The next task is [2.3](#t-2-3).
+Status (2026-11-09): Plan complete. Tasks 2.1–2.3 complete (2.3 by mock; hardware proof open in 2.4). The next task is [2.4](#t-2-4).
 
 ```mermaid
 flowchart LR
@@ -317,7 +317,7 @@ flowchart LR
     style O fill:none,stroke:none
 ```
 
-**Done when:** Both adapters pass the same set of integration tests against a live vehicle ECU or simulator.
+**Done when:** Tasks [2.1](#t-2-1) to [2.3](#t-2-3) pass their tests (2.3 with a mocked `node-hid`). [2.4](#t-2-4) proves both adapters on a live VW/Audi vehicle. [2.5](#t-2-5) completes the Ross-Tech write paths and wires `getAdapter` to the real adapters.
 
 <a id="t-2-1"></a>
 - [x] **2.1 Define HAL interface (TypeScript types + tests)** ([D2](DECISIONS.md))
@@ -409,7 +409,7 @@ flowchart LR
   </details>
 
 <a id="t-2-3"></a>
-- [ ] **2.3 Implement Ross-Tech USB-CAN adapter**
+- [x] **2.3 Implement Ross-Tech USB-CAN adapter** ([D10](DECISIONS.md), [D11](DECISIONS.md), [D12](DECISIONS.md), [D13](DECISIONS.md))
 
   <details>
   <summary>2.3 IPO card</summary>
@@ -447,7 +447,106 @@ flowchart LR
       style O fill:none,stroke:none
   ```
 
-  **Done when:** `test_rt_usb.py` connects, scans, and reads live data through Ross-Tech USB-CAN.
+  **Done when:** `tests/hal/ross-tech.test.ts` proves connect, scan, and live data read through `RossTechUSBAdapter` with a mocked `node-hid`.
+
+  </details>
+
+<a id="t-2-4"></a>
+- [ ] **2.4 Hardware check of OBDLink and Ross-Tech adapters on a live vehicle** ([D11](DECISIONS.md), [D12](DECISIONS.md))
+
+  **Caution:** 2.4 is read-only on the vehicle: connect, scan, live data, and DTC read only. No dtcClear, no long/short coding, no adaptation write, no rawCmd write before 2.5 passes.
+
+  Manual task. Needs the OBDLink adapter, the Ross-Tech cable, and a live VW/Audi vehicle (N5, N6, N7 in section 7).
+
+  <details>
+  <summary>2.4 IPO card</summary>
+
+  <!-- ipo:2.4 -->
+  ```mermaid
+  flowchart LR
+      subgraph I ["Input"]
+          a["Ross-Tech USB-CAN cable and OBDLink Bluetooth adapter (N5, N6)"]:::in
+          b["Live VW/Audi vehicle with its diagnostic port (N7)"]:::in
+      end
+      subgraph P ["Process: manual check on a live vehicle"]
+          p1["Connect both adapters; run scan and live data read on the vehicle"]:::pr
+          p2["Verify USB IDs and HID report format (incl. node-hid report-ID first byte)"]:::pr
+          p3["Verify <code>DEFAULT_PID_TABLE</code> against VCDS (FM-3 gate)"]:::pr
+          p4["Verify the ECU address field of the report (FM-12)"]:::pr
+      end
+      subgraph O ["Output"]
+          o1["Measured result of each check (FM-3, FM-9, FM-12, FM-14)"]:::ou
+          o2["Corrected constants in <code>src/hal/ross-tech.ts</code> where a check fails"]:::ou
+      end
+      a --> p1
+      b --> p1
+      p1 --> o1
+      a --> p2
+      p2 --> o1
+      p2 --> o2
+      b --> p3
+      p3 --> o1
+      p3 --> o2
+      b --> p4
+      p4 --> o1
+      p4 --> o2
+      classDef in fill:#dbeafe,stroke:#2563eb,color:#111
+      classDef pr fill:#fef3c7,stroke:#d97706,color:#111
+      classDef ou fill:#dcfce7,stroke:#16a34a,color:#111
+      style I fill:none,stroke:none
+      style P fill:none,stroke:none
+      style O fill:none,stroke:none
+  ```
+
+  **Done when:** On a live VW/Audi vehicle the real cable connects, scans, and reads live data; the USB IDs, the HID report format (incl. node-hid report-ID first byte), `DEFAULT_PID_TABLE` (FM-3 gate) and the ECU address field (FM-12) are verified.
+
+  </details>
+
+<a id="t-2-5"></a>
+- [ ] **2.5 Complete Ross-Tech write paths and wire getAdapter** ([D13](DECISIONS.md))
+
+  Depends on [2.4](#t-2-4).
+
+  **Caution:** No coding or adaptation write goes to a real ECU before 2.5 passes (FM-12).
+
+  <details>
+  <summary>2.5 IPO card</summary>
+
+  <!-- ipo:2.5 -->
+  ```mermaid
+  flowchart LR
+      subgraph I ["Input"]
+          a["Verified answers from the hardware check (task 2.4)"]:::in
+          b["Edge tests in <code>tests/hal/ross-tech.edge.test.ts</code> (6 <code>it.fails</code> tests)"]:::in
+      end
+      subgraph P ["Process: <code>src/hal/ross-tech.ts</code> and <code>src/hal/interface.ts</code>"]
+          p1["Add address field and range checks to longCode, shortCode, and sendCmd"]:::pr
+          p2["Decode the dtcRead answer; report success in rawCmd (HAL interface change)"]:::pr
+          p3["Make getAdapter return the real HID adapters; <code>unref()</code> the heartbeat timer"]:::pr
+      end
+      subgraph O ["Output"]
+          o1["<code>src/hal/ross-tech.ts</code> and <code>src/hal/interface.ts</code>"]:::ou
+          o2["<code>tests/hal/ross-tech.edge.test.ts</code> with the 6 tests passing"]:::ou
+      end
+      a --> p1
+      b --> p1
+      a --> p2
+      b --> p2
+      b --> p3
+      p1 --> o1
+      p2 --> o1
+      p3 --> o1
+      p1 --> o2
+      p2 --> o2
+      classDef in fill:#dbeafe,stroke:#2563eb,color:#111
+      classDef pr fill:#fef3c7,stroke:#d97706,color:#111
+      classDef ou fill:#dcfce7,stroke:#16a34a,color:#111
+      style I fill:none,stroke:none
+      style P fill:none,stroke:none
+      style O fill:none,stroke:none
+  ```
+
+  **Done when:** `longCode` sends the value, `shortCode` sends the code and address with range checks (no `& 0xFF` truncation), `dtcRead` decodes the answer, `rawCmd` reports success (HAL interface change), `getAdapter` returns the real adapters (FM-15), and the heartbeat timer is `unref()`ed; the 6 `it.fails` tests in `tests/hal/ross-tech.edge.test.ts` become passing tests.
 
   </details>
 
@@ -587,7 +686,6 @@ flowchart LR
 
   </details>
 
-<a id="t-2-4"></a><!-- no-ipo:2.4 -->
 <a id="t-3-3"></a>
 - [ ] **3.3 Live data streaming (measuring blocks at ≥10 Hz)**
 
@@ -634,7 +732,6 @@ flowchart LR
 
   </details>
 
-<a id="t-2-5"></a><!-- no-ipo:2.5 -->
 <a id="t-3-4"></a>
 - [ ] **3.4 Long coding (load .rod, display/edit all control modules)**
 
@@ -1093,11 +1190,19 @@ Add a row when a new item appears. Write "closed <date>" in the action column wh
 |---|---|---|---|---|
 | Risk | <a id="raid-1"></a>FM-1: HAL interface missing method needed by features | L5 × I4 = 20 | Derive interface from VCDS operation trace, not memory | [3.1](#t-3-1) |
 | Risk | <a id="raid-2"></a>FM-2: OBDLink Bluetooth disconnects during live data stream | L5 × I5 = 25 | Test on all three platforms early in S2 | [2.2](#t-2-2) |
-| Risk | <a id="raid-3"></a>FM-3: Ross-Tech RT-USB64.sys driver has Windows-only kernel mode | L5 × I5 = 25 | Use RT-USB.dll userspace path, test on macOS | [2.3](#t-2-3) |
+| Risk | <a id="raid-3"></a>FM-3: Ross-Tech RT-USB64.sys driver has Windows-only kernel mode | L5 × I5 = 25 | Use RT-USB.dll userspace path, test on macOS | [2.3](#t-2-3), [2.4](#t-2-4) |
 | Risk | <a id="raid-4"></a>FM-4: Codes.dat binary format has undocumented entry types | L4 × I4 = 16 | Cross-reference with Ghidra decompilation output | [1.2](#t-1-2) |
 | Risk | <a id="raid-5"></a>FM-5: Live data rate drops below 10 Hz under load | L4 × I4 = 16 | Profile with 20 PIDs, use web workers | [3.3](#t-3-3) |
 | Risk | <a id="raid-6"></a>FM-6: Shuffleboard widget update latency exceeds 200ms | L4 × I3 = 12 | Batch updates with requestAnimationFrame | [5.1](#t-5-1) |
 | Risk | <a id="raid-7"></a>FM-7: .rod file parser fails on extended ADP sections | L4 × I3 = 12 | Use Ghidra decompiled parser as reference | [1.4](#t-1-4) |
+| Risk | <a id="raid-8"></a>FM-8: connect() reports success on a missing or wrong HID device | L3 × I4 = 12 | Strict ID match, no fallback, test `connect returns false when no matching device` | [2.3](#t-2-3) |
+| Risk | <a id="raid-9"></a>FM-9: USB IDs 0x04d8/0x003a are wrong | L3 × I3 = 9 | Overridable IDs, test `connect uses overridden vendorId and productId`, live check | [2.3](#t-2-3), [2.4](#t-2-4) |
+| Risk | <a id="raid-10"></a>FM-10: coding or clear call reports success after a failure | L4 × I4 = 16 | Return failure when not connected or when write throws, test `longCode reports failure when hid write throws`; open write paths in 2.5 | [2.3](#t-2-3), [2.5](#t-2-5) |
+| Risk | <a id="raid-11"></a>FM-11: scan and liveData are stubs behind a passing test | L4 × I4 = 16 | Mocked read/write tests listed in FM-11; live check in 2.4 | [2.3](#t-2-3), [2.4](#t-2-4) |
+| Risk | <a id="raid-12"></a>FM-12: coding, adaptation, or raw command reaches the wrong ECU or block | L4 × I5 = 20 | Range checks fixed in 2.3; address field checked in 2.4; no coding write to a real ECU before 2.5 | [2.4](#t-2-4), [2.5](#t-2-5) |
+| Risk | <a id="raid-13"></a>FM-13: heartbeat reconnect blocks the Electron main process or leaves a false connected state | L3 × I3 = 9 | Non-blocking reconnect fixed in 2.3; `unref()` in 2.5 | [2.5](#t-2-5) |
+| Risk | <a id="raid-14"></a>FM-14: liveData or scan reads a stale answer | L3 × I4 = 12 | Stale input drained before each write in 2.3; cable check in 2.4 | [2.4](#t-2-4) |
+| Risk | <a id="raid-15"></a>FM-15: getAdapter returns an adapter that cannot reach the cable | L4 × I3 = 12 | Wire getAdapter to the real adapters in 2.5 | [2.5](#t-2-5) |
 | Risk | Electron bundle size exceeds 100MB with all dependencies | L4 × I3 = 12 | Tree-shake, use electron-builder, target <80MB | [4.1](#t-4-1) |
 | Assumption | Live vehicle testing access for integration testing | — | Arrange access to a VW/Audi with OBD2 port | All |
 | Assumption | Ghidra decompilation output provides sufficient reference code | — | Verify decompiled functions cover the 8 core VCDS operations | [1.4](#t-1-4) |
@@ -1204,11 +1309,19 @@ action, a RAID Risk row, a CAUTION, and a test. Run `render_ipo.py ... --pareto`
 |---|---|---|---|---|---|---|---|---|---|---|
 | FM-1 | 2.1/p1 | HAL interface missing a method needed by a feature | Feature crashes at runtime | Interface defined from memory, not from usage trace | TypeScript strict mode + feature tests call all methods | 8 | 3 | 3 | 72 | Prevent: derive interface from VCDS operation trace ([raid-1](#raid-1) RAID risk) |
 | FM-2 | 2.2/p2 | OBDLink Bluetooth disconnects during live data stream | User loses live data, app shows stale values | Bluetooth interference, distance, macOS power management | Heartbeat check every 1s, auto-reconnect with timeout | 8 | 4 | 3 | 96 | Detect: heartbeat monitor, recovery: auto-reconnect ([raid-2](#raid-2) RAID risk) |
-| FM-3 | 2.3/p3 | Ross-Tech USB-CAN sends raw frames that do not match expected PID mapping | Live data shows wrong values | PID table mismatch between VCDS and our mapping | Cross-reference decompiled PID tables, add integration test with live ECU | 9 | 3 | 4 | 108 | **Gate**: Verify PID table against VCDS on live vehicle ([raid-3](#raid-3) RAID risk) |
+| FM-3 | 2.3/p3 | Ross-Tech USB-CAN sends raw frames that do not match expected PID mapping | Live data shows wrong values | PID table mismatch between VCDS and our mapping. The draft `DEFAULT_PID_TABLE` is not verified, and `liveData()` never reads `pidTable` | `getPIDTable` tests only compare the table with itself. No test maps a frame through the table | 9 | 6 | 4 | 216 | **Gate**: Detect (2.3): mocked test `liveData maps frame ids through the pid table`, with a custom table. Gate (2.4): verify the table against VCDS on a live vehicle in manual task [2.4](#t-2-4) ([raid-3](#raid-3) RAID risk). Was 9/3/4 = 108. Edge hunter 2026-11-09: the constructor now rejects an empty pidTable and an entry that is not an integer in 0..0x1FFFFFFF (test `test_edge_pidTable_rejects_invalid_entries`) |
 | FM-4 | 1.2/p1 | Codes.dat parser misses undocumented entry types | Some DTCs silently dropped | VCDS uses proprietary entry types not in public docs | Parse with binary dump comparison, log unknown types as warnings | 7 | 3 | 4 | 84 | Detect: log unknown entries, test against full 1.6MB file ([raid-4](#raid-4) RAID risk) |
 | FM-5 | 3.3/p2 | Live data rate drops below 10 Hz under load | Dashboard feels laggy, user notices delay | USB polling rate, JSON serialization overhead, UI thread blocking | Profile with 20 PIDs, use web workers for serialization, target 15 Hz buffer | 7 | 4 | 3 | 84 | Detect: measure Hz over 60s, TPM threshold at 10 Hz ([raid-5](#raid-5) RAID risk) |
 | FM-6 | 5.1/p1 | Shuffleboard widget update latency exceeds 200ms | Dashboard feels unresponsive | React re-render on every data packet, too many widgets | Batch updates with requestAnimationFrame, target widget virtualization | 7 | 3 | 4 | 84 | Detect: measure update latency, Chrome DevTools Performance panel ([raid-6](#raid-6) RAID risk) |
 | FM-7 | 1.4/p1 | .rod file parser fails on extended ADP sections | Long coding shows missing parameters | .rod format has optional sections not all tools parse | Use Ghidra decompiled rod parser as reference, handle optional sections gracefully | 7 | 3 | 3 | 63 | Prevent: reference implementation from decompilation ([raid-7](#raid-7) RAID risk) |
+| FM-8 | 2.3/p1 | `connect()` returns true with no Ross-Tech cable, or opens a different HID device | The app shows "connected" and writes 8-byte frames to a keyboard, mouse, or other adapter | `connect()` falls back to `devices[0]` when the IDs do not match. The `catch` block sets `connected = true`. IDs 0x04d8/0x003a are not verified | no evidence. The test `connect returns true even when no matching device (mock mode)` asserts the fault | 8 | 6 | 5 | 240 | Prevent: match only `vendorId`/`productId` (constructor options), remove the fallback, return false on error. Detect: tests `connect returns false when no matching device`, `connect does not open a non-matching device`, `connect returns false when HID.devices throws` ([raid-8](#raid-8) RAID risk) |
+| FM-9 | 2.3/p1 | The USB IDs 0x04d8/0x003a are wrong for the real cable | `connect()` never finds the cable. After FM-8 is fixed, the user cannot connect | The IDs come from a guess, not from a verified source. 0x04d8 is the generic Microchip vendor ID | no evidence | 6 | 6 | 4 | 144 | Prevent: make `vendorId` and `productId` named constructor options with a comment that says "not verified". Detect: test `connect uses overridden vendorId and productId`. Live check in [2.4](#t-2-4) ([raid-9](#raid-9) RAID risk) |
+| FM-10 | 2.3/p2 | A failed or unanswered request reports success | The user thinks a DTC clear, long coding, short coding, or adaptation write worked. The ECU got nothing or a wrong frame | `dtcClear`, `longCode`, `shortCode`, and `adaptation` return `success: true` in the `catch` block and when not connected. `sendCmd` returns true with no device. No `hidDevice.read()` call exists, so no response is checked | no evidence. Tests `dtcClear returns true when not connected` and `longCode returns success when not connected` assert the fault | 8 | 7 | 6 | 336 | Edge hunter 2026-11-09: D 5->6 (was RPN 280). The contract tests missed `dtcRead` (write error gave `[]`, fixed; never decodes the answer, open) and `rawCmd` (no success field, open), see edges.md. Prevent: return `success: false` (or throw) when not connected or when `write` throws. Detect: tests `longCode reports failure when hid write throws`, `dtcClear returns false when not connected`, `sendCmd throws when not connected` ([raid-10](#raid-10) RAID risk) Open: write paths and `dtcRead` in [2.5](#t-2-5). |
+| FM-11 | 2.3/p4 | The done-when test passes but proves nothing about scan and live data | 2.3 is marked done while `scan()` and `liveData()` are stubs. S2 starts on a false base | `scan()` returns the fixed list 1..100. `liveData(pids)` returns zero frames and sends nothing. The tests check shape only | no evidence. Tests check types and counts, not the bytes written or read | 7 | 8 | 7 | 392 | Edge hunter 2026-11-09: D 6->7 (was RPN 336). A short report gives a frame with fewer than 7 data bytes; a non-string pid crashed liveData (fixed), see edges.md. Detect: mocked `node-hid` tests `scan returns only ECUs that answer`, `liveData writes one request per pid`, `liveData decodes the mocked read response`, `liveData reports no data on read timeout`. Replace stubs with real read and write ([raid-11](#raid-11) RAID risk) Short-report part fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). Open: live check in [2.4](#t-2-4). |
+| FM-12 | 2.3/p2 | A coding, adaptation, or raw command goes to an unspecified ECU, or to a different block or channel | The wrong ECU, block, or channel gets the request, and the call reports success | The assumed 8-byte HID report has no ECU address or CAN ID field. `sendCmd` ignores `_address`, `rawCmd` ignores `id`. `block & 0xFF` and `channel & 0xFF` turn 256 into 0 | it.fails tests `test_edge_longCode_writes_differ_for_different_ecu_addresses`, `test_edge_rawCmd_writes_differ_for_different_ids`, `test_edge_longCode_block_out_of_range_is_not_written_as_another_block`, `test_edge_adaptation_channel_out_of_range_is_not_written_as_channel_0` | 9 | 8 | 7 | 504 | Prevent: define the address field of the report in task 2.4; reject block or channel outside 0..255 (needs a decision: existing tests expect success for -1). Until then, coding calls must not go to a live vehicle Block and channel range (0..255) fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). Open: address field in [2.4](#t-2-4); address write path in [2.5](#t-2-5). |
+| FM-13 | 2.3/p1 | The heartbeat reconnect blocks the thread for about 2 s, or leaves `connected = true` with no device | The Electron main process freezes all windows and IPC after a cable unplug. In a context that forbids `Atomics.wait`, the adapter says "connected" with no device | `_reconnect` calls `sleepSync` (`Atomics.wait`) 2 x 1000 ms inside a timer callback. An exception from `Atomics.wait` exits before `connected = false` | it.fails tests `test_edge_reconnect_does_not_block_event_loop`, `test_edge_reconnect_state_is_consistent_when_sleep_throws` | 5 | 5 | 4 | 100 | Fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). |
+| FM-14 | 2.3/p3 | `liveData()` or `scan()` reads an old answer that belongs to an earlier request | Live data shows a wrong value; scan lists a phantom ECU | `dtcRead`, `dtcClear`, coding calls, and the heartbeat ping write a request and never read its answer. Nothing drains the HID input buffer before a new request | it.fails tests `test_edge_liveData_does_not_return_a_stale_dtc_answer`, `test_edge_scan_does_not_count_a_stale_answer_as_an_ecu` | 8 | 6 | 6 | 288 | Fixed in 2.3 (tests in `tests/hal/ross-tech.test.ts` and `tests/hal/ross-tech.edge.test.ts`). |
+| FM-15 | 2.3/p4 | `getAdapter()` returns an adapter that the caller cannot connect | A caller that holds only `HalInterface` gets 0 ECUs, `[]` live data, and `false` from every write, with no error. Before 2.3 the same call gave the stub (100 ECUs) | `getAdapter` returns an unconnected `RossTechUSBAdapter` for RossTech, null, undefined, and unknown types. `HalInterface` has no `connect()`. The OBDLink branch still returns the 2.1 stub, so decision 5 ("same pattern as OBDLink") is not true | it.fails tests `test_edge_getAdapter_result_can_reach_the_cable_through_HalInterface`, `test_edge_getAdapter_OBDLink_uses_the_same_pattern_as_RossTech` | 6 | 7 | 4 | 168 | Prevent: add `connect()`/`disconnect()`/`isConnected()` to `HalInterface` or let `getAdapter` connect; make both branches return the HID adapter; decide if an unknown type throws. Needs a Jack decision Open: wiring in [2.5](#t-2-5). |
 
 FTA for FM-3 (S = 9, worst cause):
 

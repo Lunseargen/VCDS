@@ -1102,5 +1102,89 @@
       ]
     ],
     "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p4 p4>o1"
+  },
+  "2.4": {
+    "titles": {
+      "P": "Process: manual check on a live vehicle"
+    },
+    "input": [
+      [
+        "a",
+        "Ross-Tech USB-CAN cable and OBDLink Bluetooth adapter (N5, N6)"
+      ],
+      [
+        "b",
+        "Live VW/Audi vehicle with its diagnostic port (N7)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Connect both adapters; run scan and live data read on the vehicle"
+      ],
+      [
+        "p2",
+        "Verify USB IDs and HID report format (incl. node-hid report-ID first byte)"
+      ],
+      [
+        "p3",
+        "Verify `DEFAULT_PID_TABLE` against VCDS (FM-3 gate)"
+      ],
+      [
+        "p4",
+        "Verify the ECU address field of the report (FM-12)"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "Measured result of each check (FM-3, FM-9, FM-12, FM-14)"
+      ],
+      [
+        "o2",
+        "Corrected constants in `src/hal/ross-tech.ts` where a check fails"
+      ]
+    ],
+    "edges": "a>p1 b>p1 p1>o1 a>p2 p2>o1 p2>o2 b>p3 p3>o1 p3>o2 b>p4 p4>o1 p4>o2"
+  },
+  "2.5": {
+    "titles": {
+      "P": "Process: `src/hal/ross-tech.ts` and `src/hal/interface.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "Verified answers from the hardware check (task 2.4)"
+      ],
+      [
+        "b",
+        "Edge tests in `tests/hal/ross-tech.edge.test.ts` (6 `it.fails` tests)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Add address field and range checks to longCode, shortCode, and sendCmd"
+      ],
+      [
+        "p2",
+        "Decode the dtcRead answer; report success in rawCmd (HAL interface change)"
+      ],
+      [
+        "p3",
+        "Make getAdapter return the real HID adapters; `unref()` the heartbeat timer"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/ross-tech.ts` and `src/hal/interface.ts`"
+      ],
+      [
+        "o2",
+        "`tests/hal/ross-tech.edge.test.ts` with the 6 tests passing"
+      ]
+    ],
+    "edges": "a>p1 b>p1 a>p2 b>p2 b>p3 p1>o1 p2>o1 p3>o1 p1>o2 p2>o2"
   }
 }
