@@ -1,0 +1,1106 @@
+{
+  "S1": {
+    "titles": {
+      "S": "S1: Data Models and File Parsing"
+    },
+    "input": [
+      [
+        "a",
+        "VCDS installed files (Codes.dat, AutoScan.txt, .rod, .lbl, .SCL, .cfg)"
+      ],
+      [
+        "b",
+        "Ghidra decompilation output (reference for binary formats)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Parse each file format and validate against known structure"
+      ],
+      [
+        "p2",
+        "Convert to JSON/YAML canonical format in data/ directory"
+      ],
+      [
+        "p3",
+        "Verify round-trip: parsed JSON values match original binary/text"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`data/codes.json`"
+      ],
+      [
+        "o2",
+        "`data/autoscan.json`"
+      ],
+      [
+        "o3",
+        "`data/modules.json` (from .rod files)"
+      ],
+      [
+        "o4",
+        "`data/labels.json` (from .lbl files)"
+      ],
+      [
+        "o5",
+        "`data/scales.json` (from .SCL files)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p1 p1>o4 a>p2 p2>o5"
+  },
+  "S2": {
+    "titles": {
+      "S": "S2: Hardware Abstraction Layer"
+    },
+    "input": [
+      [
+        "a",
+        "USB/Bluetooth connection to OBD2 ECU"
+      ],
+      [
+        "b",
+        "HAL interface types (TypeScript)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Implement OBDLink adapter using node-hid for Bluetooth HID"
+      ],
+      [
+        "p2",
+        "Implement Ross-Tech adapter using RT-USB.dll and RT-USB64.sys"
+      ],
+      [
+        "p3",
+        "Route HAL calls through unified interface to active adapter"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/obdlink.ts` (OBDLink adapter)"
+      ],
+      [
+        "o2",
+        "`src/hal/ross-tech.ts` (Ross-Tech adapter)"
+      ],
+      [
+        "o3",
+        "`src/hal/interface.ts` (unified HAL types + factory)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3"
+  },
+  "S3": {
+    "titles": {
+      "S": "S3: Core VCDS Features"
+    },
+    "input": [
+      [
+        "a",
+        "HAL interface (scans, reads, writes, live data)"
+      ],
+      [
+        "b",
+        "Data models (JSON files from S1)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Implement module scanner: request all 30+ ECU addresses, parse responses"
+      ],
+      [
+        "p2",
+        "Implement DTC read/clear: request DTC codes per module, send clear command"
+      ],
+      [
+        "p3",
+        "Implement live data: request PIDs at ≥10 Hz, stream packets"
+      ],
+      [
+        "p4",
+        "Implement long coding: load .rod codings, display table, write back"
+      ],
+      [
+        "p5",
+        "Implement short coding: bit-level toggle, apply to ECU"
+      ],
+      [
+        "p6",
+        "Implement adaptations: list named params, modify values, write to ECU"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/scan.ts`"
+      ],
+      [
+        "o2",
+        "`src/features/dtc.ts`"
+      ],
+      [
+        "o3",
+        "`src/features/liveData.ts`"
+      ],
+      [
+        "o4",
+        "`src/features/longCoding.ts`"
+      ],
+      [
+        "o5",
+        "`src/features/shortCoding.ts`"
+      ],
+      [
+        "o6",
+        "`src/features/adaptations.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p4 p4>o4 a>p5 p5>o5 b>p6 p6>o6"
+  },
+  "S4": {
+    "titles": {
+      "S": "S4: UI Framework and Features"
+    },
+    "input": [
+      [
+        "a",
+        "Electron main + renderer process"
+      ],
+      [
+        "b",
+        "IPC layer (main ↔ renderer)"
+      ],
+      [
+        "c",
+        "Feature results from S3"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Build main window with navigation sidebar and module detail view"
+      ],
+      [
+        "p2",
+        "Connect IPC to send feature requests and receive results"
+      ],
+      [
+        "p3",
+        "Render labels (.lbl) and scaling (.SCL) in live data view"
+      ],
+      [
+        "p4",
+        "Implement TDI graph with time-series plotting"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/ui/App.tsx` (main window framework)"
+      ],
+      [
+        "o2",
+        "`src/ui/Navigation.tsx` (sidebar)"
+      ],
+      [
+        "o3",
+        "`src/ui/LiveDataPanel.tsx` (live data with labels/scales)"
+      ],
+      [
+        "o4",
+        "`src/ui/TdiGraph.tsx` (TDI time-series graph)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 c>p3 p3>o3 a>p4 p4>o4"
+  },
+  "S5": {
+    "titles": {
+      "S": "S5: Shuffleboard Dashboard"
+    },
+    "input": [
+      [
+        "a",
+        "Live data stream from S3 via IPC"
+      ],
+      [
+        "b",
+        "Widget configuration (preset layouts)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Implement four widget types: gauge, bar graph, switch, text display"
+      ],
+      [
+        "p2",
+        "Build drag-and-drop layout system for widgets"
+      ],
+      [
+        "p3",
+        "Connect widgets to live data stream, update at ≥10 Hz with <200ms latency"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/dashboard/WidgetGauge.tsx`"
+      ],
+      [
+        "o2",
+        "`src/dashboard/WidgetBar.tsx`"
+      ],
+      [
+        "o3",
+        "`src/dashboard/WidgetSwitch.tsx`"
+      ],
+      [
+        "o4",
+        "`src/dashboard/WidgetText.tsx`"
+      ],
+      [
+        "o5",
+        "`src/dashboard/Layout.tsx` (drag-and-drop panels)"
+      ],
+      [
+        "o6",
+        "`src/dashboard/presets.json` (preset module layouts)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p1 p1>o4 a>p2 p2>o5 b>p3 p3>o6"
+  },
+  "1.1": {
+    "titles": {
+      "P": "Process: `npm create electron-app` + TypeScript config"
+    },
+    "input": [
+      [
+        "a",
+        "Node.js ≥18.x, npm, Git"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Create Electron + TypeScript project scaffold"
+      ],
+      [
+        "p2",
+        "Configure tsconfig.json, vite/webpack for bundling"
+      ],
+      [
+        "p3",
+        "Add testing setup (Vitest or Jest)"
+      ],
+      [
+        "p4",
+        "Verify build pipeline: npm run build + npm test"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`package.json` with all dependencies"
+      ],
+      [
+        "o2",
+        "`tsconfig.json`"
+      ],
+      [
+        "o3",
+        "`src/main/` (Electron main process entry)"
+      ],
+      [
+        "o4",
+        "`src/renderer/` (Electron renderer entry)"
+      ],
+      [
+        "o5",
+        "`tests/setup.test.ts` (scaffold test passing)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 a>p2 p2>o2 a>p3 p3>o3 a>p4 p4>o4 a>p1 p1>o5"
+  },
+  "1.2": {
+    "titles": {
+      "P": "Process: `scripts/parse_codes_dat.py`"
+    },
+    "input": [
+      [
+        "a",
+        "`Software/installed/Codes.dat` (1.6MB binary)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Read binary file, skip PE header if embedded, find entry table"
+      ],
+      [
+        "p2",
+        "Parse each entry: DTC code (2B), description (variable), status flags"
+      ],
+      [
+        "p3",
+        "Handle 0x00000000 prefixed entries per Ghidra decompilation reference"
+      ],
+      [
+        "p4",
+        "Write output to `data/codes.json` with type definitions"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`data/codes.json`"
+      ],
+      [
+        "o2",
+        "`src/models/dtc.ts` (TypeScript type definitions)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 a>p2 p2>o2 a>p3 p3>o1 a>p4 p4>o2"
+  },
+  "1.3": {
+    "titles": {
+      "P": "Process: `scripts/parse_autoscan.py`"
+    },
+    "input": [
+      [
+        "a",
+        "`Software/installed/AutoScan.txt` (300+ chassis definitions)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Parse comma-separated lines: code, name, version"
+      ],
+      [
+        "p2",
+        "Filter for VW/Audi chassis codes"
+      ],
+      [
+        "p3",
+        "Write structured JSON with array of chassis objects"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`data/autoscan.json`"
+      ],
+      [
+        "o2",
+        "`src/models/chassis.ts` (TypeScript type)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 a>p2 p2>o2 a>p3 p3>o1"
+  },
+  "1.4": {
+    "titles": {
+      "P": "Process: `scripts/parse_rod_lbl_scl.py`"
+    },
+    "input": [
+      [
+        "a",
+        ".rod files (UDS_EV/, etc.), .lbl files (Labels/), .SCL files (Scaling/), .cfg files"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Parse .rod: extract [CMP], [ADP], [DTC], [IDN] sections"
+      ],
+      [
+        "p2",
+        "Parse .lbl: extract address-code mapped label entries"
+      ],
+      [
+        "p3",
+        "Parse .SCL: extract PID → unit/range/step mappings"
+      ],
+      [
+        "p4",
+        "Parse .cfg: extract key=value pairs"
+      ],
+      [
+        "p5",
+        "Write all to JSON, validate round-trip against original values"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`data/modules.json` (from .rod)"
+      ],
+      [
+        "o2",
+        "`data/labels.json` (from .lbl)"
+      ],
+      [
+        "o3",
+        "`data/scales.json` (from .SCL)"
+      ],
+      [
+        "o4",
+        "`data/config.json` (from .cfg)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 a>p2 p2>o2 a>p3 p3>o3 a>p4 p4>o4 a>p5 p5>o1"
+  },
+  "2.1": {
+    "titles": {
+      "P": "Process: `src/hal/interface.ts` definition"
+    },
+    "input": [
+      [
+        "a",
+        "VCDS operation trace (8 core operations from R3-R10)"
+      ],
+      [
+        "b",
+        "CAN frame structure from decompiled reference"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Define TypeScript interface with 8 methods: scan, dtcRead, dtcClear, liveData, longCode, shortCode, adaptation, rawCmd"
+      ],
+      [
+        "p2",
+        "Define CANFrame type: id (4B hex), data (8B array), timestamp (ms)"
+      ],
+      [
+        "p3",
+        "Define factory pattern for adapter selection (OBDLink vs Ross-Tech)"
+      ],
+      [
+        "p4",
+        "Write interface tests that call each method signature"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/interface.ts` (types + factory)"
+      ],
+      [
+        "o2",
+        "`tests/hal/interface.test.ts` (interface tests)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "2.2": {
+    "titles": {
+      "P": "Process: `src/hal/obdlink.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "OBDLink Bluetooth adapter (HID device)"
+      ],
+      [
+        "b",
+        "HAL interface from [2.1](#t-2-1)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Connect to OBDLink via node-hid HID descriptor"
+      ],
+      [
+        "p2",
+        "Implement send/receive for VCDS diagnostic requests"
+      ],
+      [
+        "p3",
+        "Implement heartbeat monitoring for disconnection detection"
+      ],
+      [
+        "p4",
+        "Implement auto-reconnect logic"
+      ],
+      [
+        "p5",
+        "Run integration tests against vehicle or OBDLink simulator"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/obdlink.ts`"
+      ],
+      [
+        "o2",
+        "`tests/hal/obdlink.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2 a>p5 p5>o1"
+  },
+  "2.3": {
+    "titles": {
+      "P": "Process: `src/hal/ross-tech.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "Ross-Tech USB-CAN cable (RT-USB64.sys on Windows, RT-USB.dll cross-platform)"
+      ],
+      [
+        "b",
+        "HAL interface from [2.1](#t-2-1)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Connect via RT-USB.dll (userspace) or direct USB on macOS/Linux"
+      ],
+      [
+        "p2",
+        "Implement send/receive for VCDS diagnostic requests"
+      ],
+      [
+        "p3",
+        "Map CAN frames to VCDS PID format using decompiled PID table"
+      ],
+      [
+        "p4",
+        "Run integration tests against vehicle or Ross-Tech simulator"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/hal/ross-tech.ts`"
+      ],
+      [
+        "o2",
+        "`tests/hal/ross-tech.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "3.1": {
+    "titles": {
+      "P": "Process: `src/features/scan.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL scan method"
+      ],
+      [
+        "b",
+        "AutoScan chassis table from [1.3](#t-1-3)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Send diagnostic request to all 30+ ECU addresses (01-3E)"
+      ],
+      [
+        "p2",
+        "Parse response: address code, module name, SW part number, status (OK/malfunction)"
+      ],
+      [
+        "p3",
+        "Cross-reference with AutoScan table for chassis-specific names"
+      ],
+      [
+        "p4",
+        "Return ScanModule[] array matching VCDS output format"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/scan.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/scan.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "3.2": {
+    "titles": {
+      "P": "Process: `src/features/dtc.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL dtcRead/dtcClear methods"
+      ],
+      [
+        "b",
+        "Codes.dat from [1.2](#t-1-2)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Request DTC codes from each ECU module"
+      ],
+      [
+        "p2",
+        "Decode DTC codes using Codes.dat reference (or embedded JSON)"
+      ],
+      [
+        "p3",
+        "Return DtcEntry[] with code, description, status, module"
+      ],
+      [
+        "p4",
+        "Send clear command, verify codes are removed via re-scan"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/dtc.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/dtc.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "3.3": {
+    "titles": {
+      "P": "Process: `src/features/liveData.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL liveData method (continuous stream)"
+      ],
+      [
+        "b",
+        "Scaling data from [1.4](#t-1-4)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Send periodic PID request frames at ≥10 Hz"
+      ],
+      [
+        "p2",
+        "Receive CAN response frames, extract raw values"
+      ],
+      [
+        "p3",
+        "Apply scaling factors from .SCL data (multiplier, offset, unit)"
+      ],
+      [
+        "p4",
+        "Emit LiveDataPacket{pid, value, unit, timestamp} events"
+      ],
+      [
+        "p5",
+        "Measure actual frame rate over 60-second test"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/liveData.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/liveData.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2 a>p5 p5>o1"
+  },
+  "3.4": {
+    "titles": {
+      "P": "Process: `src/features/longCoding.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL longCode method"
+      ],
+      [
+        "b",
+        "Module codings from .rod files [1.4](#t-1-4)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Load .rod file, extract CMP section with control module codings"
+      ],
+      [
+        "p2",
+        "Display coding table: offset, byte value (hex/binary), description"
+      ],
+      [
+        "p3",
+        "Allow editing byte values, send write command to ECU"
+      ],
+      [
+        "p4",
+        "Verify written value by reading back"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/longCoding.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/longCoding.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "3.5": {
+    "titles": {
+      "P": "Process: `src/features/shortCoding.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL shortCode method"
+      ],
+      [
+        "b",
+        "Parameter descriptions from .rod ADP section"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Display parameter list with bit-level view"
+      ],
+      [
+        "p2",
+        "Allow toggle of individual bits (0→1, 1→0)"
+      ],
+      [
+        "p3",
+        "Show parameter description for each bit position"
+      ],
+      [
+        "p4",
+        "Write modified codings to ECU"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/shortCoding.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/shortCoding.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "3.6": {
+    "titles": {
+      "P": "Process: `src/features/adaptations.ts`"
+    },
+    "input": [
+      [
+        "a",
+        "HAL adaptation method"
+      ],
+      [
+        "b",
+        "Adaptation names from .rod ADP section"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Request adaptation list from ECU"
+      ],
+      [
+        "p2",
+        "Display each adaptation: name, current value, min, max, step"
+      ],
+      [
+        "p3",
+        "Allow user to modify value within range"
+      ],
+      [
+        "p4",
+        "Send adaptation request to ECU, verify applied"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/features/adaptations.ts`"
+      ],
+      [
+        "o2",
+        "`tests/features/adaptations.test.ts`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "4.1": {
+    "titles": {
+      "P": "Process: `src/ui/App.tsx` scaffold"
+    },
+    "input": [
+      [
+        "a",
+        "Electron main process"
+      ],
+      [
+        "b",
+        "IPC channel (electron.ipcMain / electron.ipcRenderer)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Create Electron main window with menu bar and navigation sidebar"
+      ],
+      [
+        "p2",
+        "Set up IPC handlers for feature requests (scan, dtc, liveData)"
+      ],
+      [
+        "p3",
+        "Create renderer React app with route-based navigation"
+      ],
+      [
+        "p4",
+        "Connect sidebar items to route changes"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/ui/App.tsx`"
+      ],
+      [
+        "o2",
+        "`src/ui/Navigation.tsx`"
+      ],
+      [
+        "o3",
+        "`src/main/ipc.ts` (IPC handlers)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p4 p4>o1"
+  },
+  "4.2": {
+    "titles": {
+      "P": "Process: `src/ui/LiveDataPanel.tsx`"
+    },
+    "input": [
+      [
+        "a",
+        "Live data stream from `src/features/liveData.ts`"
+      ],
+      [
+        "b",
+        "Scaling (.SCL) and labels (.lbl) from [1.4](#t-1-4)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Render live data table with PID, raw value, scaled value, unit"
+      ],
+      [
+        "p2",
+        "Apply .SCL scaling to convert raw bytes to engineering units"
+      ],
+      [
+        "p3",
+        "Overlay .lbl labels for human-readable descriptions"
+      ],
+      [
+        "p4",
+        "Auto-scroll table, update at ≥10 Hz"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/ui/LiveDataPanel.tsx`"
+      ],
+      [
+        "o2",
+        "`tests/ui/LiveDataPanel.test.tsx`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "4.3": {
+    "titles": {
+      "P": "Process: `src/ui/TdiGraph.tsx`"
+    },
+    "input": [
+      [
+        "a",
+        "TDI time-series data (boost pressure, RPM, etc.)"
+      ],
+      [
+        "b",
+        "Chart library (e.g., recharts or lightweight-charts)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Create time-series chart component"
+      ],
+      [
+        "p2",
+        "Plot multiple lines (boost pressure, RPM, MAP, MAF) with different colors"
+      ],
+      [
+        "p3",
+        "Support historical data playback and live scrolling"
+      ],
+      [
+        "p4",
+        "Match VCDS TDIGraph visual output (colors, axes, grid)"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/ui/TdiGraph.tsx`"
+      ],
+      [
+        "o2",
+        "`tests/ui/TdiGraph.test.tsx`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o1 b>p4 p4>o2"
+  },
+  "5.1": {
+    "titles": {
+      "P": "Process: `src/dashboard/` widget components"
+    },
+    "input": [
+      [
+        "a",
+        "Live data stream from S3 via IPC"
+      ],
+      [
+        "b",
+        "Widget type config (gauge, bar, switch, text)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Implement WidgetGauge: circular gauge with needle, min/max labels"
+      ],
+      [
+        "p2",
+        "Implement WidgetBar: vertical/horizontal bar with value label"
+      ],
+      [
+        "p3",
+        "Implement WidgetSwitch: on/off toggle switch"
+      ],
+      [
+        "p4",
+        "Implement WidgetText: large text display with value and unit"
+      ],
+      [
+        "p5",
+        "Connect all widgets to live data stream, batch updates via requestAnimationFrame"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/dashboard/WidgetGauge.tsx`"
+      ],
+      [
+        "o2",
+        "`src/dashboard/WidgetBar.tsx`"
+      ],
+      [
+        "o3",
+        "`src/dashboard/WidgetSwitch.tsx`"
+      ],
+      [
+        "o4",
+        "`src/dashboard/WidgetText.tsx`"
+      ],
+      [
+        "o5",
+        "`src/dashboard/index.ts` (export + registry)"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p4 p4>o4 a>p5 p5>o5"
+  },
+  "5.2": {
+    "titles": {
+      "P": "Process: `src/dashboard/Layout.tsx`"
+    },
+    "input": [
+      [
+        "a",
+        "Widget instances from [5.1](#t-5-1)"
+      ],
+      [
+        "b",
+        "Preset layout configs (engine-panel.json, full-panel.json)"
+      ]
+    ],
+    "process": [
+      [
+        "p1",
+        "Implement drag-and-drop panel system using react-grid-layout or dnd-kit"
+      ],
+      [
+        "p2",
+        "Load preset layouts and render widgets in defined positions"
+      ],
+      [
+        "p3",
+        "Allow drag, resize, add, remove widgets"
+      ],
+      [
+        "p4",
+        "Save custom layout to JSON for persistence"
+      ]
+    ],
+    "output": [
+      [
+        "o1",
+        "`src/dashboard/Layout.tsx`"
+      ],
+      [
+        "o2",
+        "`src/dashboard/presets.json`"
+      ],
+      [
+        "o3",
+        "`tests/dashboard/Layout.test.tsx`"
+      ]
+    ],
+    "edges": "a>p1 p1>o1 b>p2 p2>o2 a>p3 p3>o3 b>p4 p4>o1"
+  }
+}
